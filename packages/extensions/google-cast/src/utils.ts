@@ -6,7 +6,7 @@ export class NotFoundError extends Error {}
 
 export const GOOGLE_CAST_FRAMEWORK_URL = 'https://www.gstatic.com/cv/js/sender/v1/cast_sender.js?loadCastFramework=1';
 
-const HLS_RESPONSE_HEADERS = ['application/x-mpegURL', 'application/vnd.apple.mpegurl', 'audio/mpegurl'];
+const HLS_CONTENT_TYPES = ['application/x-mpegurl', 'application/vnd.apple.mpegurl', 'audio/mpegurl'];
 
 export class IterableWeakSet<T extends WeakKey> {
   readonly #refs = new Set<WeakRef<T>>();
@@ -110,58 +110,24 @@ export function setPlaybackRate(rate: number) {
   });
 }
 
-export type CastOptions = cast.framework.CastOptions;
-
-export function setCastOptions(options: Partial<CastOptions>) {
+export function setCastOptions(options: Partial<cast.framework.CastOptions>) {
   getCastContext()!.setOptions({
-    ...getDefaultCastOptions(),
-    ...options,
-  });
-}
-
-export function getDefaultCastOptions(): CastOptions {
-  return {
     receiverApplicationId: 'CC1AD845',
     autoJoinPolicy:
       globalThis.chrome?.cast?.AutoJoinPolicy?.ORIGIN_SCOPED ?? ('origin_scoped' as chrome.cast.AutoJoinPolicy),
     androidReceiverCompatible: false,
     language: 'en-US',
     resumeSavedSession: true,
-  };
+    ...options,
+  });
 }
 
-function getFormat(segment: string | undefined) {
-  if (!segment) return undefined;
-
-  const regex = /\.([a-zA-Z0-9]+)(?:\?.*)?$/;
-  const match = segment.match(regex);
-
-  return match ? match[1] : null;
-}
-
-function parsePlaylistUrls(playlistContent: string) {
-  const lines = playlistContent.split('\n');
-  const urls: string[] = [];
-
-  for (let i = 0; i < lines.length; i++) {
-    const line = lines[i]!.trim();
-
-    if (line.startsWith('#EXT-X-STREAM-INF')) {
-      const nextLine = lines[i + 1] ? lines[i + 1]!.trim() : '';
-
-      if (nextLine && !nextLine.startsWith('#')) {
-        urls.push(nextLine);
-      }
-    }
-  }
-
-  return urls;
-}
-
-function parseSegment(playlistContent: string) {
-  const lines = playlistContent.split('\n');
-
-  return lines.find((line) => !line.trim().startsWith('#') && line.trim() !== '');
+/** The first URI a playlist lists: a variant playlist in a multivariant playlist, otherwise a segment. */
+function getFirstUri(playlist: string) {
+  return playlist
+    .split('\n')
+    .map((line) => line.trim())
+    .find((line) => line && !line.startsWith('#'));
 }
 
 export async function isHls(url: string) {
@@ -176,32 +142,24 @@ export async function isHls(url: string) {
     const contentType = response.headers.get('Content-Type');
     if (!contentType) return false;
 
-    const normalizedContentType = contentType.toLowerCase().split(';')[0]!.trim();
-
-    return HLS_RESPONSE_HEADERS.some((header) => normalizedContentType === header.toLowerCase());
+    return HLS_CONTENT_TYPES.includes(contentType.toLowerCase().split(';')[0]!.trim());
   } catch (err) {
     console.error('Error while trying to get the Content-Type of the manifest', err);
     return false;
   }
 }
 
+/** The file extension of the stream's segments, such as `ts` or `m4s`, read from the first variant's playlist. */
 export async function getPlaylistSegmentFormat(url: string) {
   try {
-    const mainManifestContent = await (await fetch(url)).text();
-    let availableChunksContent = mainManifestContent;
+    const playlist = await (await fetch(url)).text();
+    let uri = getFirstUri(playlist);
 
-    const playlists = parsePlaylistUrls(mainManifestContent);
-
-    if (playlists.length > 0) {
-      const chosenPlaylistUrl = new URL(playlists[0]!, url).toString();
-
-      availableChunksContent = await (await fetch(chosenPlaylistUrl)).text();
+    if (uri && playlist.includes('#EXT-X-STREAM-INF')) {
+      uri = getFirstUri(await (await fetch(new URL(uri, url))).text());
     }
 
-    const segment = parseSegment(availableChunksContent);
-    const format = getFormat(segment);
-
-    return format;
+    return uri?.match(/\.(\w+)(?:\?.*)?$/)?.[1];
   } catch (err) {
     console.error('Error while trying to parse the manifest playlist', err);
     return undefined;

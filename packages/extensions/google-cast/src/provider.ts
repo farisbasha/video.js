@@ -99,7 +99,7 @@ export class GoogleCastProvider {
     this.detach();
     googleCastInstances.delete(this);
     currentMedia()?.removeUpdateListener(this.#onMediaUpdate);
-    this.#detachRemoteListeners();
+    this.#listenToRemotePlayer(false);
     this.#isCasting = false;
     this.#isInit = false;
   }
@@ -122,7 +122,7 @@ export class GoogleCastProvider {
 
     await ensureCastFramework();
 
-    if (!this.#isCastApiAvailable()) {
+    if (!globalThis.chrome?.cast?.isAvailable) {
       throw new NotSupportedError('The RemotePlayback API is disabled on this platform.');
     }
 
@@ -131,18 +131,14 @@ export class GoogleCastProvider {
     this.#isCasting = true;
 
     this.#applyCastOptions();
-    this.#attachRemoteListeners();
+    this.#listenToRemotePlayer(true);
 
     try {
       await getCastContext()!.requestSession();
     } catch (err) {
-      if (!willDisconnect) {
-        this.#isCasting = false;
-      }
+      if (!willDisconnect) this.#isCasting = false;
 
-      if (err === 'cancel') {
-        return;
-      }
+      if (err === 'cancel') return;
 
       throw new Error(err as string);
     }
@@ -427,14 +423,11 @@ export class GoogleCastProvider {
   onCastStateChanged() {
     if (!this.#isInit) return;
 
-    const CS = cast.framework.CastState;
-    const state = getCastContext()!.getCastState();
-
-    if (this.#isCasting && state === CS.CONNECTING) {
+    if (this.#isCasting && getCastContext()!.getCastState() === cast.framework.CastState.CONNECTING) {
       this.#hooks.setState?.('connecting');
     }
 
-    this.#hooks.setAvailable?.(!!state && state !== CS.NO_DEVICES_AVAILABLE);
+    this.#hooks.setAvailable?.(this.hasDevicesAvailable());
   }
 
   async onSessionStateChanged() {
@@ -453,7 +446,7 @@ export class GoogleCastProvider {
         this.#resumedTrackIds = currentMedia()?.activeTrackIds ?? [];
         this.#applyResumedTextTracks();
 
-        this.#attachRemoteListeners();
+        this.#listenToRemotePlayer(true);
 
         try {
           await getMediaStatus(new chrome.cast.media.GetStatusRequest());
@@ -468,72 +461,49 @@ export class GoogleCastProvider {
     }
   }
 
-  #isCastApiAvailable() {
-    return Boolean(globalThis.chrome?.cast?.isAvailable);
-  }
-
   #applyCastOptions() {
     const { receiver } = this.#googleCast;
 
     setCastOptions(receiver ? { receiverApplicationId: receiver } : {});
   }
 
-  // CAF's RemotePlayerController does not deduplicate handlers, so we guard
-  // attach/detach with a flag to prevent duplicate event dispatches across
-  // cancel/retry and stop-casting flows.
-  #attachRemoteListeners() {
-    if (this.#listenersAttached) return;
-
+  // CAF's RemotePlayerController does not deduplicate handlers, so a flag keeps cancel/retry and stop-casting flows from
+  // adding them twice and dispatching every event twice.
+  #listenToRemotePlayer(listen: boolean) {
     const controller = this.#remotePlayer?.controller;
-    if (!controller) return;
+    if (this.#listenersAttached === listen || !controller) return;
 
     for (const [type, handler] of Object.entries(this.#remoteListeners)) {
-      controller.addEventListener(type as cast.framework.RemotePlayerEventType, handler);
+      const eventType = type as cast.framework.RemotePlayerEventType;
+
+      if (listen) controller.addEventListener(eventType, handler);
+      else controller.removeEventListener(eventType, handler);
     }
 
-    this.#listenersAttached = true;
-  }
-
-  #detachRemoteListeners() {
-    if (!this.#listenersAttached) return;
-
-    const controller = this.#remotePlayer?.controller;
-
-    if (controller) {
-      for (const [type, handler] of Object.entries(this.#remoteListeners)) {
-        controller.removeEventListener(type as cast.framework.RemotePlayerEventType, handler);
-      }
-    }
-
-    this.#listenersAttached = false;
+    this.#listenersAttached = listen;
   }
 
   #disconnect() {
     if (!this.#isCasting) return;
 
     currentMedia()?.removeUpdateListener(this.#onMediaUpdate);
-    this.#detachRemoteListeners();
+    this.#listenToRemotePlayer(false);
     this.#seeking = false;
     this.#playbackRate = 1;
     this.#isCasting = false;
     this.#loadedSrc = null;
     this.#resumedTrackIds = null;
 
-    if (this.target) {
-      this.target.muted = this.#remotePlayer.isMuted;
-    }
+    const { target } = this;
+    if (!target) return;
 
     const saved = this.#remotePlayer.savedPlayerState;
 
-    if (saved) {
-      if (this.target) {
-        this.target.currentTime = saved.currentTime;
-      }
+    target.muted = this.#remotePlayer.isMuted;
 
-      if (saved.isPaused === false && this.target) {
-        this.target.play();
-      }
-    }
+    if (saved) target.currentTime = saved.currentTime;
+
+    if (saved?.isPaused === false) target.play();
   }
 
   #notifySeeking() {
