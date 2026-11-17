@@ -32,6 +32,7 @@ type GoogleCastConfig = GoogleCastExtensionProps;
 export class GoogleCastProvider {
   target: HTMLMediaTargetLike | null = null;
   #googleCast: GoogleCastConfig;
+  #canCast: () => boolean;
   #loadedSrc: string | null = null;
   #hooks: Partial<RemotePlaybackHooks> = {};
   #remotePlayback: RemotePlayback;
@@ -46,8 +47,10 @@ export class GoogleCastProvider {
   #onTextTrackChange = () => this.#updateRemoteTextTrack();
   #onMediaUpdate = () => this.#checkPlaybackRate();
 
-  constructor(googleCast: GoogleCastConfig) {
+  /** @param canCast - Whether the source can be cast at all; casting is reported unavailable while it can't. */
+  constructor(googleCast: GoogleCastConfig, canCast: () => boolean = () => true) {
     this.#googleCast = googleCast;
+    this.#canCast = canCast;
     this.#remotePlayback = new RemotePlayback(this);
     googleCastInstances.add(this);
     this.onCastFrameworkAvailable();
@@ -93,15 +96,25 @@ export class GoogleCastProvider {
     Object.assign(this.#hooks, hooks);
   }
 
-  hasDevicesAvailable() {
+  /** Whether a cast session can be offered: the source can be cast, and a device is around to cast it to. */
+  isAvailable() {
     const state = getCastContext()?.getCastState();
 
-    return !!state && state !== cast.framework.CastState.NO_DEVICES_AVAILABLE;
+    return this.#canCast() && !!state && state !== cast.framework.CastState.NO_DEVICES_AVAILABLE;
+  }
+
+  /** Report availability again, after something the `canCast` check reads changed. */
+  updateAvailability() {
+    if (this.#isInit) this.#hooks.setAvailable?.(this.isAvailable());
   }
 
   async requestCastSession() {
     if (this.target?.disableRemotePlayback) {
       throw new InvalidStateError('disableRemotePlayback attribute is present.');
+    }
+
+    if (!this.#canCast()) {
+      throw new NotSupportedError('This source needs a custom Cast receiver.');
     }
 
     await ensureCastFramework();
@@ -414,7 +427,7 @@ export class GoogleCastProvider {
       this.#hooks.setState?.('connecting');
     }
 
-    this.#hooks.setAvailable?.(!!state && state !== CS.NO_DEVICES_AVAILABLE);
+    this.updateAvailability();
   }
 
   async onSessionStateChanged() {
