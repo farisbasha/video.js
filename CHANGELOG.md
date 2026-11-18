@@ -2,6 +2,25 @@
 
 All notable changes to this project will be documented in this file.
 
+## [@videojs/core@10.6.0] - 2026-11-18
+
+### 🚀 Features
+- *(spf)* Play live streams on the audio engines ([#9779](https://github.com/videojs/video.js/pull/9779)) by [@cjpillsbury](https://github.com/cjpillsbury)
+
+### 🐛 Bug Fixes
+- *(spf)* Fail the source when its manifest does not load ([#9776](https://github.com/videojs/video.js/pull/9776)) by [@cjpillsbury](https://github.com/cjpillsbury)
+- *(hlsjs-video)* Surface fatal errors raised while media is attaching ([#9729](https://github.com/videojs/video.js/pull/9729)) by [@siam923](https://github.com/siam923)
+- *(spf)* Surface metadata before play for tracks without an init segment ([#9778](https://github.com/videojs/video.js/pull/9778)) by [@cjpillsbury](https://github.com/cjpillsbury)
+- *(core)* Position popovers manually under a transformed ancestor ([#9762](https://github.com/videojs/video.js/pull/9762)) by [@vladosskins178](https://github.com/vladosskins178)
+
+### 📚 Documentation
+- *(spf)* Correct what Mux packages as MPEG-TS and what live TS covers ([#9777](https://github.com/videojs/video.js/pull/9777)) by [@cjpillsbury](https://github.com/cjpillsbury)
+- *(site)* Add changelog prose for 10.5.0 ([#9781](https://github.com/videojs/video.js/pull/9781)) by [@github-actions[bot]](https://github.com/github-actions[bot])
+
+### New Contributors
+* @vladosskins178 made their first contribution in [#9762](https://github.com/videojs/video.js/pull/9762)
+* @siam923 made their first contribution in [#9729](https://github.com/videojs/video.js/pull/9729)
+
 ## [@videojs/core@10.5.0] - 2026-11-16
 
 ### 🚀 Features
@@ -2528,6 +2547,7 @@ All notable changes to this project will be documented in this file.
 * @decepulis made their first contribution in [#118](https://github.com/videojs/v10/pull/118)
 * @heff made their first contribution
 
+[@videojs/core@10.6.0]: https://github.com/videojs/video.js/compare/@videojs/core@10.5.0...@videojs/core@10.6.0
 [@videojs/core@10.5.0]: https://github.com/videojs/video.js/compare/@videojs/core@10.4.0...@videojs/core@10.5.0
 [@videojs/core@10.4.0]: https://github.com/videojs/video.js/compare/@videojs/core@10.3.0...@videojs/core@10.4.0
 [@videojs/core@10.3.0]: https://github.com/videojs/video.js/compare/@videojs/core@10.2.0...@videojs/core@10.3.0
