@@ -1,5 +1,26 @@
 # Changelog
 
+## [10.6.0](https://github.com/videojs/video.js/compare/@videojs/spf@10.5.0...@videojs/spf@10.6.0) (2026-11-18)
+
+
+### Features
+
+* **spf:** play live streams on the audio engines ([#9779](https://github.com/videojs/video.js/issues/9779)) ([3ad2dcf](https://github.com/videojs/video.js/commit/3ad2dcf5bd43906f91b1f93e5ca1968766f17636))
+
+
+### Bug Fixes
+
+* **spf:** fail the source when its manifest does not load ([#9776](https://github.com/videojs/video.js/issues/9776)) ([f27f4a6](https://github.com/videojs/video.js/commit/f27f4a6fbfdf37abcd0c797e49190f26c2dfd847))
+* **spf:** surface metadata before play for tracks without an init segment ([#9778](https://github.com/videojs/video.js/issues/9778)) ([73e69af](https://github.com/videojs/video.js/commit/73e69af922faec0d0f21673b390619c5972f806d))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @videojs/media bumped to 10.6.0
+    * @videojs/utils bumped to 10.6.0
+
 ## [10.5.0](https://github.com/videojs/video.js/compare/@videojs/spf@10.4.0...@videojs/spf@10.5.0) (2026-11-16)
 
 

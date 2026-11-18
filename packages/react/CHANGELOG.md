@@ -1,5 +1,66 @@
 # Changelog
 
+## [10.6.0](https://github.com/videojs/video.js/compare/@videojs/react@10.5.0...@videojs/react@10.6.0) (2026-11-18)
+
+
+### Bug Fixes
+
+* **spf:** fail the source when its manifest does not load ([#9776](https://github.com/videojs/video.js/issues/9776)) ([f27f4a6](https://github.com/videojs/video.js/commit/f27f4a6fbfdf37abcd0c797e49190f26c2dfd847))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @videojs/core bumped to 10.6.0
+    * @videojs/media bumped to 10.6.0
+    * @videojs/native-hls-video bumped to 10.6.0
+    * @videojs/spf bumped to 10.6.0
+    * @videojs/store bumped to 10.6.0
+    * @videojs/utils bumped to 10.6.0
+  * devDependencies
+    * @videojs/cloudflare-video bumped to 10.6.0
+    * @videojs/dailymotion-video bumped to 10.6.0
+    * @videojs/dash-video bumped to 10.6.0
+    * @videojs/google-analytics bumped to 10.6.0
+    * @videojs/google-cast bumped to 10.6.0
+    * @videojs/hlsjs-video bumped to 10.6.0
+    * @videojs/icons bumped to 10.6.0
+    * @videojs/mixcloud-audio bumped to 10.6.0
+    * @videojs/mux-audio bumped to 10.6.0
+    * @videojs/mux-data bumped to 10.6.0
+    * @videojs/mux-video bumped to 10.6.0
+    * @videojs/playerjs-video bumped to 10.6.0
+    * @videojs/shaka-video bumped to 10.6.0
+    * @videojs/soundcloud-audio bumped to 10.6.0
+    * @videojs/spf bumped to 10.6.0
+    * @videojs/spotify-audio bumped to 10.6.0
+    * @videojs/tiktok-video bumped to 10.6.0
+    * @videojs/twitch-video bumped to 10.6.0
+    * @videojs/vimeo-video bumped to 10.6.0
+    * @videojs/wistia-video bumped to 10.6.0
+    * @videojs/youtube-video bumped to 10.6.0
+  * peerDependencies
+    * @videojs/cloudflare-video bumped to 10.6.0
+    * @videojs/dailymotion-video bumped to 10.6.0
+    * @videojs/dash-video bumped to 10.6.0
+    * @videojs/google-analytics bumped to 10.6.0
+    * @videojs/google-cast bumped to 10.6.0
+    * @videojs/hlsjs-video bumped to 10.6.0
+    * @videojs/mixcloud-audio bumped to 10.6.0
+    * @videojs/mux-audio bumped to 10.6.0
+    * @videojs/mux-data bumped to 10.6.0
+    * @videojs/mux-video bumped to 10.6.0
+    * @videojs/playerjs-video bumped to 10.6.0
+    * @videojs/shaka-video bumped to 10.6.0
+    * @videojs/soundcloud-audio bumped to 10.6.0
+    * @videojs/spotify-audio bumped to 10.6.0
+    * @videojs/tiktok-video bumped to 10.6.0
+    * @videojs/twitch-video bumped to 10.6.0
+    * @videojs/vimeo-video bumped to 10.6.0
+    * @videojs/wistia-video bumped to 10.6.0
+    * @videojs/youtube-video bumped to 10.6.0
+
 ## [10.5.0](https://github.com/videojs/video.js/compare/@videojs/react@10.4.0...@videojs/react@10.5.0) (2026-11-16)
 
 
